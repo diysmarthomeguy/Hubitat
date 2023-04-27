@@ -24,7 +24,7 @@ definition(
     name: "Layout Template",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    import: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
     description: "Manage a Layout Template",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",

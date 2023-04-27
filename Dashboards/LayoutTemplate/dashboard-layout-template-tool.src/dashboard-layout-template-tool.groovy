@@ -22,7 +22,7 @@ definition(
     name: "Dashboard Layout Template Tool",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    import: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
     description: "Create and Manage Layout Templates for Dashboards",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
@@ -30,18 +30,11 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
-    page(name: "mainPage", title: "Layout Templates", install: true, uninstall: true,submitOnChange: true) {
+    page(name: "mainPage", title: "Dashboard Layout Templates", install: true, uninstall: true,submitOnChange: true) {
         section {
-            app(name: "association", appName: "Dashboard Template", namespace: "diysmarthomeguy", title: "Create New Template", multiple: true)
+            app(name: "layout-template", appName: "Dashboard Template", namespace: "diysmarthomeguy", title: "Create New Template", multiple: true)
             }
-        section {
-            paragraph "This tool does important stuff"
-            href(name: "hrefNotRequired",
-             title: "blah",
-             required: false,
-             style: "external",
-             url: "https://github.com/diysmarthomeguy/Hubitat/Dashboards/LayoutTemplate",
-             description: "Tap to view information about this spink")
+
         }
     }
 }
