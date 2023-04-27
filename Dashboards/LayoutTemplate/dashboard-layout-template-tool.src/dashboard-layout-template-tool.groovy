@@ -33,7 +33,6 @@ preferences {
     page(name: "mainPage", title: "Dashboard Layout Templates", install: true, uninstall: true,submitOnChange: true) {
         section {
             app(name: "layout-template", appName: "Dashboard Template", namespace: "diysmarthomeguy", title: "Create New Template", multiple: true)
-            }
 
         }
     }
