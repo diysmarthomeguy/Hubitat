@@ -11,7 +11,7 @@ definition(
 preferences {
     page(name: "mainPage", title: "Layout Templates", install: true, uninstall: true,submitOnChange: true) {
         section {
-            app(name: "association", appName: "Dashboard Template", namespace: "diyshg", title: "Create New Template", multiple: true)
+            app(name: "association", appName: "Dashboard Template", namespace: "diysmarthomeguy", title: "Create New Template", multiple: true)
             }
         section {
             paragraph "This tool does important stuff"
