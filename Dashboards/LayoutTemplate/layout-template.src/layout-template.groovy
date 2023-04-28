@@ -24,7 +24,7 @@ definition(
     name: "Layout Template",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
     description: "Manage a Layout Template",
     category: "My Apps",
     parent: "diysmarthomeguy:Dashboard Layout Template Tool",

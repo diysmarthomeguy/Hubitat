@@ -22,7 +22,7 @@ definition(
     name: "Dashboard Layout Template Tool",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
     description: "Create and Manage Layout Templates for Dashboards",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
