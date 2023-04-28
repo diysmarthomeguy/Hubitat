@@ -19,6 +19,8 @@
  *  2023-04-27  0.01 New
 **/
 
+def doDebug() { return  [ "debug": 1, "info": 1,"trace": 1, "warn":1, "error":1 ] }
+
 
 
 definition(
@@ -47,27 +49,54 @@ preferences {
         section("Destination Dashboards") {
             input "SwitchDest", "capability.switch", title: "Select the Dashboard(s) to update <i><b>from</b></i> the Template", submitOnChange: true, required: true, multiple: true
         }
+        section() {
+            input "applyButton", "button", title: "Apply"
+           
+        }
     }
 }
 
-def applyTemplate() {
-    def origLayout = string
-    def templateName = string
-    def myJSON = string[2]
-    def targets = string[]
+def appButtonHandler(buttonName) {
+    def func = "appButtonHandler()" as String
     def rv
     
+    rv = doLog("debug", "$func", "1", "Button Pressed", "$buttonName")
+    
+    rv = applyTemplate()
+    
+}
+
+
+def applyTemplate() {
+    def func = "applyTemplate()" as String
+    def origLayout = String
+    def templateName = String
+    def myJSON = new String[2]
+    def targets = String[]
+    def rv
+    
+    rv = doLog("debug","$func", "1", "variables declared", "")
+    rv = doLog("info","Dashboard Layout Template deploy activated", "","","")
+    
     // templateName = << get the template name from the input >>
-
-    origLayout = getJSON(${templateName}) 
-    myJSON = splitJSON(${origLayout})
-    rv = putJSON(myJSON)
-
+    templateName = "Mobile Dashboard"
+    
+    rv = doLog("debug","$func", "2", "Template Name returned", "$templateName")
+    
+    origLayout = getJSON("$templateName") 
+    
+    rv = doLog("debug","$func", "3", "Original JSON Layout returned", "$origLayout")
+    
+    //myJSON = splitJSON(${origLayout})
+    //rv = putJSON(myJSON)
+    
+    return 
 
 }
 
 def splitJSON(theJSON) {
     def jsonElements = string[2]
+    def rv
 
     // regex to split the elements and toss the tiles
 
@@ -75,9 +104,17 @@ def splitJSON(theJSON) {
     
 }
 
-def getJSON(theDashboard) {
-    def result = string
+def getJSON(String theDashboard) {
+    def func = "getJSON()" as String
+    def result
+    def rv
+    
+    rv = doLog("debug","$func", "1", "theDashboard", "$val")
+    
     // some code to get the json from the selected dashboard
+    
+    result = "{\"name\": \"value\" }"
+    
     return result
 }
 
@@ -110,8 +147,53 @@ def updated() {
 
 def initialize() {
     app.updateLabel(defaultLabel())
+    def theback
+
 }
 
 def defaultLabel() {
     return "${templateName}"
 }
+
+def doLog (logType, funcName, seq, msg, msgVal) {
+// rv = doLog("debug","$func", "1", "Message", "$val")
+    def logger = "$funcName $seq : $msg [$msgVal]"  
+    def dbg = doDebug()
+    
+    
+        switch("$logType") {
+            case "info":
+                if (dbg['info'] == 1) {
+                    log.info "${logger}"
+                    
+                }
+                break
+            case "debug":
+                if (dbg['debug'] == 1) {
+                    log.debug "$logger"
+                
+                }
+                break
+            case "trace":
+
+                log.trace "$logger"
+ 
+                break
+            case "warn":
+                log.warn "$logger"
+                break
+            
+            case "error":
+                log.error "$logger"
+                break
+            
+        }
+    
+    return 1
+}
+
+
+
+
+
+
