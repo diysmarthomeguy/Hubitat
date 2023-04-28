@@ -27,14 +27,37 @@ definition(
     importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/77dafc70246f76b04d637103eb7d9982340ccc85/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
     description: "Manage a Layout Template",
     category: "My Apps",
+    parent: "diysmarthomeguy:Dashboard Layout Template Tool",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
-    preferences {
+preferences {
     page(name: "mainPage", title: "Layout Template", install: true, uninstall: true,submitOnChange: true) {
-        section {
-            app(name: "association", appName: "Layout Template", namespace: "diysmarthomeguy", title: "Give teh template a name", multiple: true)
-            }
+
+       section {
+            /** app(name: "layout-template", appName: "Layout Template", namespace: "diysmarthomeguy", title: "Give teh template a name", multiple: true) **/
+                  input "templateName", "string", title: "Enter a name for your Layout Template", submitOnChange: true, defaultValue: ""
+        }
+        
     }
+}
+
+def installed() {
+    log.debug "Installed with settings: ${settings}"
+    initialize()
+}
+
+def updated() {
+    log.debug "Updated with settings: ${settings}"
+    unsubscribe()
+    initialize()
+}
+
+def initialize() {
+    app.updateLabel(defaultLabel())
+}
+
+def defaultLabel() {
+    return "${templateName}"
 }

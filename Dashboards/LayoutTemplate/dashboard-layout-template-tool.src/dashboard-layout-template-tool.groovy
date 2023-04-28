@@ -32,10 +32,17 @@ definition(
 preferences {
     page(name: "mainPage", title: "Dashboard Layout Templates", install: true, uninstall: true,submitOnChange: true) {
         section {
-            app(name: "layout-template", appName: "Dashboard Template", namespace: "diysmarthomeguy", title: "Create New Template", multiple: true)
-
+            app(name: "layout-template", appName: "Layout Template", namespace: "diysmarthomeguy", title: "Create New Dashboard Template", multiple: true)
         }
     }
+}
+
+Map mainPage() {
+	dynamicPage(name: "mainPage", title: "$templateName", install: true, uninstall: true) {
+		section {
+			app.updateLabel(${child.label})
+		}
+	}
 }
 
 def installed() {
