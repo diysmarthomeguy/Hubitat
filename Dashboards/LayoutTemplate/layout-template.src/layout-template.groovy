@@ -21,13 +21,13 @@
 
 
 definition(
-    name: "Layout Template",
+    name: "Dashboard Layout Template",
     namespace: "diysmarthomeguy",
     author: "John Stone",
     importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/layout-template.src/layout-template.groovy",
     description: "Manage a Layout Template",
     category: "My Apps",
-    parent: "diysmarthomeguy:Dashboard Layout Template Tool",
+    parent: "diysmarthomeguy:Dashboard Layout Template Manager",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")

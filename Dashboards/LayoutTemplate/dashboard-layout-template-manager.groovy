@@ -1,6 +1,6 @@
 /**
 
- *  Hubitat Dashboard Layout Template Parent App
+ *  Hubitat Dashboard Layout Template Manager (Parent App)
  *  Author: John Stone (diysmarthomeguy)
  *  Date: 2023-04-27
  *
@@ -22,7 +22,7 @@ definition(
     name: "Dashboard Layout Template Manager",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-manager.groovy",
     description: "Create and Manage Layout Templates for Dashboards",
     category: "My Apps",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
@@ -32,7 +32,7 @@ definition(
 preferences {
     page(name: "mainPage", title: "Dashboard Layout Templates", install: true, uninstall: true,submitOnChange: true) {
         section {
-            app(name: "layout-template", appName: "Dashboard Layout Template", namespace: "diysmarthomeguy", title: "Create New Dashboard Template", multiple: true)
+            app(name: "dashboard-layout-template", appName: "Dashboard Layout Template", namespace: "diysmarthomeguy", title: "Create New Dashboard Template", multiple: true)
         }
     }
 }

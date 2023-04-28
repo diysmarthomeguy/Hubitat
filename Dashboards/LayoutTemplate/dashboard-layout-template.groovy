@@ -1,6 +1,6 @@
 /**
 
- *  Hubitat Dashboard Layout Template Parent App
+ *  Hubitat Dashboard Layout Templates
  *  Author: John Stone (diysmarthomeguy)
  *  Date: 2023-04-27
  *
@@ -18,31 +18,29 @@
  *  2023-04-27  New
 **/
 
+
+
 definition(
-    name: "Dashboard Layout Template Manager",
+    name: "Dashboard Layout Template",
     namespace: "diysmarthomeguy",
     author: "John Stone",
-    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-tool.src/dashboard-layout-template-tool.groovy",
-    description: "Create and Manage Layout Templates for Dashboards",
+    importURL: "https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template.groovy",
+    description: "Manage a Layout Template",
     category: "My Apps",
+    parent: "diysmarthomeguy:Dashboard Layout Template Manager",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
-    page(name: "mainPage", title: "Dashboard Layout Templates", install: true, uninstall: true,submitOnChange: true) {
-        section {
-            app(name: "layout-template", appName: "Dashboard Layout Template", namespace: "diysmarthomeguy", title: "Create New Dashboard Template", multiple: true)
-        }
-    }
-}
+    page(name: "mainPage", title: "Layout Template", install: true, uninstall: true,submitOnChange: true) {
 
-Map mainPage() {
-	dynamicPage(name: "mainPage", title: "$templateName", install: true, uninstall: true) {
-		section {
-			app.updateLabel(${child.label})
-		}
-	}
+       section {
+            /** app(name: "dashboard-layout-template", appName: "Dashboard Layout Template", namespace: "diysmarthomeguy", title: "Give teh template a name", multiple: true) **/
+                  input "templateName", "string", title: "Enter a name for your Layout Template", submitOnChange: true, defaultValue: ""
+        }
+        
+    }
 }
 
 def installed() {
@@ -57,8 +55,9 @@ def updated() {
 }
 
 def initialize() {
-    log.debug "there are ${childApps.size()} child smartapps"
-    childApps.each {child ->
-        log.debug "child app: ${child.label}"
-    }
+    app.updateLabel(defaultLabel())
+}
+
+def defaultLabel() {
+    return "${templateName}"
 }
