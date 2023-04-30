@@ -15,9 +15,16 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *
  *  2023-04-29  0.003    Updated code to read users dashboard list - replaced strawman Switch stubs
  *  2023-04-28  0.002    strawman code to confirm layout and operations
  *  2023-04-27  0.001    New
+ *
+ *
+ *  ###     This App has a parent and a child. Both are required     ###
+ *  Parent App -    https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-manager.groovy
+ *  Child App -     https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template.groovy
+ *
 **/
 
 def doDebug() { return  [ "debug": 1, "info": 1,"trace": 1, "warn":1, "error":1 ] }
@@ -63,7 +70,9 @@ preferences {
 }
 
 def getDashList() {        
+    // Modified from code by @bptworld which was
     // Modified from code by gavincampbell
+
     def func = "getDashList()" as String
     def rv
     rv = doLog("debug", "$func", "1", "Fetching App List", "...")
@@ -71,7 +80,6 @@ def getDashList() {
     login() 
     
 	def params = [
-		//uri: "http://127.0.0.1:8080/app/list",
         uri: "http://127.0.0.1:8080/installedapp/list",
 		textParser: true,
 		headers: [
@@ -120,6 +128,7 @@ def getDashList() {
 }
 
 def login() {        
+     // Modified from code by @bptworld which was
     // Modified from code by @dman2306
     def func = "login()" as String
     def rv

@@ -16,6 +16,12 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *  2023-04-27  New
+ *
+ *
+ *  ###     This App has a parent and a child. Both are required     ###
+ *  Parent App -    https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-manager.groovy
+ *  Child App -     https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template.groovy
+ *
 **/
 
 definition(
