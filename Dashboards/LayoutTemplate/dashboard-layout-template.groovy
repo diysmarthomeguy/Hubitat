@@ -15,6 +15,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Updated code to read users dashboard list - replaced strawman Switch stubs
  *  2023-04-28  0.02 strawman code to confirm layout and operations
  *  2023-04-27  0.01 New
 **/
@@ -36,6 +37,9 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 preferences {
+ 
+    getDashList()
+               
     page(name: "mainPage", title: "Layout Template", install: true, uninstall: true,submitOnChange: true) {
         section() {
             paragraph "<OL><li>Select a Dashboard to use as a Layout Template.<li>Then select the Dashboard(s) to use the selected layout.<li>Press Done to apply the Template to the target Dashboard(s).<li>This will include all tile sizes and custom colors.</OL>"
@@ -44,15 +48,120 @@ preferences {
             
             input "templateName", "string", title: "Enter a name for your Layout Template", submitOnChange: true, defaultValue: ""
             paragraph ""
-            input "SwitchOrig", "capability.switch", title: "Select Dashboard to use as the Layout Template", submitOnChange: true, required: true, multiple: false
+
+            input "layoutTemplates", "enum", title: "Select Layout Dashboard", required:true, multiple:false, options: state.allDashNames
+            
         }
         section("Destination Dashboards") {
-            input "SwitchDest", "capability.switch", title: "Select the Dashboard(s) to update <i><b>from</b></i> the Template", submitOnChange: true, required: true, multiple: true
+            input "targetDashboards", "enum", title: "Select Target Dashboard", required:true, multiple:true, options: state.allDashNames
         }
         section() {
             input "applyButton", "button", title: "Apply"
            
         }
+    }
+}
+
+def getDashList() {        
+    // Modified from code by gavincampbell
+    def func = "getDashList()" as String
+    def rv
+    rv = doLog("debug", "$func", "1", "Fetching App List", "...")
+    
+    login() 
+    
+	def params = [
+		//uri: "http://127.0.0.1:8080/app/list",
+        uri: "http://127.0.0.1:8080/installedapp/list",
+		textParser: true,
+		headers: [
+			Cookie: state.cookie
+		]
+	  ]
+	
+    
+	def allAppsList = []
+    def allAppNames = []
+	try {
+
+        // MY CODE TO MAKE IT WORK
+        	httpGet(params) { resp ->     
+			def matcherText = resp.data.text.replaceAll("\n\r","").replace("\n","").replace("\r","")
+            
+            // find dashboard appId
+            def id = matcherText.find(/data-id="(\d+)">\s+Hubitat® Dashboard/) { match, id -> return id.trim() }
+            rv = doLog("debug", "$func", "5", "ID", "$id")
+                
+                def matcher = (matcherText =~ /(?m)<div class="grid-childArea childOf3">.*?title="">(.*?)(\s?)<\/a>.*?<\/div>/)    
+                    matcher.find()
+                    def matches = matcher.iterator()
+                    Map results = [:]
+                    def int i = 0
+                
+                matches.each {
+                    allAppNames << it[1]
+                }
+                
+                rv = doLog("debug", "$func", "6", "dashMatch", "$results")
+		}
+        
+        
+	} catch (e) {
+		log.error "Error retrieving installed apps: ${e}"
+        log.error(getExceptionMessageWithLine(e))
+	}
+    
+
+    state.allDashNames = allAppNames.sort { a, b -> a.toLowerCase() <=> b.toLowerCase() }
+    rv = doLog("debug", "$func", "20", "Dash Names", "$state.allDashNames")
+    
+    return
+    
+}
+
+def login() {        
+    // Modified from code by @dman2306
+    def func = "login()" as String
+    def rv
+    
+    rv = doLog("debug", "$func", "1", "In login", "Checking Hub Security")
+    
+
+    state.cookie = ""
+    if(hubSecurity) {
+        try{
+            httpPost(
+                [
+                    uri: "http://127.0.0.1:8080",
+                    path: "/login",
+                    query: 
+                    [
+                        loginRedirect: "/"
+                    ],
+                    body:
+                    [
+                        username: hubUsername,
+                        password: hubPassword,
+                        submit: "Login"
+                    ],
+                    textParser: true,
+                    ignoreSSLIssues: true
+                ]
+            )
+            { resp ->
+                if (resp.data?.text?.contains("The login information you supplied was incorrect.")) {
+                    rv = doLog("warn", "$func", "10", "Incorrect Login", "$hubUsername")
+                } else {
+                    state.cookie = resp?.headers?.'Set-Cookie'?.split(';')?.getAt(0)
+                    rv = doLog("debug", "$func", "11", "Login Correct", "$hubUsername")
+                }
+            }
+        } catch (e) {
+            //log.error(getExceptionMessageWithLine(e))
+            rv = doLog("error", "$func", "20", "Login Correct", "getExceptionMessageWithLine(e)")
+        }
+    } else {
+        rv = doLog("debug", "$func", "30", "No Hub Security", "...")
     }
 }
 
