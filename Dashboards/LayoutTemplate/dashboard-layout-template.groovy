@@ -15,9 +15,9 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Updated code to read users dashboard list - replaced strawman Switch stubs
- *  2023-04-28  0.02 strawman code to confirm layout and operations
- *  2023-04-27  0.01 New
+ *  2023-04-29  0.003    Updated code to read users dashboard list - replaced strawman Switch stubs
+ *  2023-04-28  0.002    strawman code to confirm layout and operations
+ *  2023-04-27  0.001    New
 **/
 
 def doDebug() { return  [ "debug": 1, "info": 1,"trace": 1, "warn":1, "error":1 ] }
@@ -46,7 +46,7 @@ preferences {
         }
         section("Layout Template (Origin Dashboard)") {
             
-            input "templateName", "string", title: "Enter a name for your Layout Template", submitOnChange: true, defaultValue: ""
+            input "templateName", "string", title: "Enter a name for your Layout Template", submitOnChange: true, defaultValue: "Dashboard Layout Template"
             paragraph ""
 
             input "layoutTemplates", "enum", title: "Select Layout Dashboard", required:true, multiple:false, options: state.allDashNames
@@ -92,7 +92,7 @@ def getDashList() {
             def id = matcherText.find(/data-id="(\d+)">\s+Hubitat® Dashboard/) { match, id -> return id.trim() }
             rv = doLog("debug", "$func", "5", "ID", "$id")
                 
-                def matcher = (matcherText =~ /(?m)<div class="grid-childArea childOf3">.*?title="">(.*?)(\s?)<\/a>.*?<\/div>/)    
+                def matcher = (matcherText =~ /(?m)<div class="grid-childArea childOf$id">.*?title="">(.*?)(\s?)<\/a>.*?<\/div>/)    
                     matcher.find()
                     def matches = matcher.iterator()
                     Map results = [:]
@@ -256,12 +256,18 @@ def updated() {
 
 def initialize() {
     app.updateLabel(defaultLabel())
-    def theback
 
 }
 
 def defaultLabel() {
-    return "${templateName}"
+    def String labelName = ""
+   
+    if (app.getLabel() == null) {
+        labelName = "Dashboard Layout Template"
+    } else {   
+        return "${templateName}"
+    }
+    return labelName
 }
 
 def doLog (logType, funcName, seq, msg, msgVal) {
