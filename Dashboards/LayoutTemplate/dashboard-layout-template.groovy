@@ -15,21 +15,38 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *
+ *  2023-05-02  0.004    More attempts to read and write JSON - can read only with dashboard token (not OAuth), and can't write yet.
  *  2023-04-29  0.003    Updated code to read users dashboard list - replaced strawman Switch stubs
  *  2023-04-28  0.002    strawman code to confirm layout and operations
  *  2023-04-27  0.001    New
- *
- *
- *  ###     This App has a parent and a child. Both are required     ###
- *  Parent App -    https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template-manager.groovy
- *  Child App -     https://raw.githubusercontent.com/diysmarthomeguy/Hubitat/main/Dashboards/LayoutTemplate/dashboard-layout-template.groovy
- *
+
+NOTES:
+    1) OAuth needs to be activated for this app to work.
+        a) click OAuth
+        b) accept the defaults
+        c) click Update
+        d) click close
+
+
+
+
 **/
 
-def doDebug() { return  [ "debug": 1, "info": 1,"trace": 1, "warn":1, "error":1 ] }
+def doDebug() { return  [ "debug": 0, "info": 1,"trace": 1, "warn":1, "error":1, "test": 1 ] }
 
-
+def appParams() {
+    def func = "appParams"
+    
+	def params = [
+        uri: "http://127.0.0.1:8080/installedapp/list",
+		textParser: true,
+		headers: [
+			Cookie: state.cookie
+		]
+	  ]
+    rv = doLog("debug", "$func", "1", "App Params", "$params")
+    return params
+}
 
 definition(
     name: "Dashboard Layout Template",
@@ -58,6 +75,8 @@ preferences {
 
             input "layoutTemplates", "enum", title: "Select Layout Dashboard", required:true, multiple:false, options: state.allDashNames
             
+            input "dashAccessToken", "string", title: "Paste the Access Token for this Dashboard (temp workaround)", submitOnChange: true, defaultValue: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            
         }
         section("Destination Dashboards") {
             input "targetDashboards", "enum", title: "Select Target Dashboard", required:true, multiple:true, options: state.allDashNames
@@ -69,56 +88,75 @@ preferences {
     }
 }
 
-def getDashList() {        
-    // Modified from code by @bptworld which was
-    // Modified from code by gavincampbell
+private initAccessToken() {
+    // modified from code by @bertabcd1234
+	if (!state.accessToken) {
+		try {
+			def accessToken = createAccessToken()
+			if (accessToken) {
+                state.accessToken = accessToken
+			}
+		} 
+		catch(e) {
+			state.accessToken = null
+		}
+	}	
+	return state.accessToken
+}
 
+private getHttp(params) {
+    def func = "getHttp" as String
+    def retult
+    
+    try {
+        	httpGet(params) { resp ->
+			result = resp.data.text.replaceAll("\n","").replaceAll("\r","")
+		}
+
+	} catch (e) {
+		doLog("error", "$func", "-9001", "Error retrieving installed apps: ", "${e}")
+        doLog("error", "$func", "-9002", "Exceptions: ", getExceptionMessageWithLine(e))
+
+        //        log.error "Error retrieving installed apps: ${e}"
+        //log.error(getExceptionMessageWithLine(e))
+        result = null
+	}
+    
+    return result
+    
+}
+
+
+def getDashList() {        
+    // Modified from code by gavincampbell
     def func = "getDashList()" as String
     def rv
+    def allAppNames = []
+    
     rv = doLog("debug", "$func", "1", "Fetching App List", "...")
     
     login() 
     
-	def params = [
-        uri: "http://127.0.0.1:8080/installedapp/list",
-		textParser: true,
-		headers: [
-			Cookie: state.cookie
-		]
-	  ]
-	
+    def params = appParams()
     
-	def allAppsList = []
-    def allAppNames = []
-	try {
-
-        // MY CODE TO MAKE IT WORK
-        	httpGet(params) { resp ->     
-			def matcherText = resp.data.text.replaceAll("\n\r","").replace("\n","").replace("\r","")
-            
-            // find dashboard appId
-            def id = matcherText.find(/data-id="(\d+)">\s+Hubitat® Dashboard/) { match, id -> return id.trim() }
-            rv = doLog("debug", "$func", "5", "ID", "$id")
-                
-                def matcher = (matcherText =~ /(?m)<div class="grid-childArea childOf$id">.*?title="">(.*?)(\s?)<\/a>.*?<\/div>/)    
-                    matcher.find()
-                    def matches = matcher.iterator()
-                    Map results = [:]
-                    def int i = 0
-                
-                matches.each {
-                    allAppNames << it[1]
-                }
-                
-                rv = doLog("debug", "$func", "6", "dashMatch", "$results")
-		}
-        
-        
-	} catch (e) {
-		log.error "Error retrieving installed apps: ${e}"
-        log.error(getExceptionMessageWithLine(e))
-	}
+    def matcherText = getHttp(params).replaceAll("\n","").replaceAll("\r","")
     
+    def id = getDashAppId(matcherText)
+    
+    rv = doLog("debug", "$func", "5", "ID", "$id")
+    
+    def matcher = (matcherText =~ /(?m)<div class="grid-childArea childOf$id">.*?title="">(.*?)(\s?)<\/a>.*?<\/div>/)    
+    
+    matcher.find()
+    def matches = matcher.iterator()
+    Map results = [:]
+    def int i = 0
+                
+    matches.each {
+        allAppNames << it[1]
+    }
+                
+    rv = doLog("debug", "$func", "6", "dashMatch", "$allAppNames")
 
     state.allDashNames = allAppNames.sort { a, b -> a.toLowerCase() <=> b.toLowerCase() }
     rv = doLog("debug", "$func", "20", "Dash Names", "$state.allDashNames")
@@ -127,13 +165,25 @@ def getDashList() {
     
 }
 
+def getDashAppId(String appList) {
+    def id = appList.find(/data-id="(\d+)">\s+Hubitat® Dashboard/) { match, id -> return id.trim() }
+    return id
+}
+
+def getDashChildAppId(String appList, String dashName) {
+    def func = "getDashChildAppId" as String
+    def id = appList.find(/<a href="\/installedapp\/configure\/(\d+)"\sclass=""\s+title="">\s?$dashName/) { match, id -> return id.trim() }
+    doLog("debug", "$func", "9001", "Child App Id", "$id")                     
+                    
+    return id
+}
+
 def login() {        
-     // Modified from code by @bptworld which was
     // Modified from code by @dman2306
     def func = "login()" as String
     def rv
     
-    rv = doLog("debug", "$func", "1", "In login", "Checking Hub Security")
+    doLog("debug", "$func", "1", "In login", "Checking Hub Security")
     
 
     state.cookie = ""
@@ -177,13 +227,100 @@ def login() {
 def appButtonHandler(buttonName) {
     def func = "appButtonHandler()" as String
     def rv
+    initAccessToken()
+    def oAuth_accessToken = "$state.accessToken"
+    def dash_accessToken = "$dashAccessToken"
     
-    rv = doLog("debug", "$func", "1", "Button Pressed", "$buttonName")
+        doLog("debug", "$func", "9001", "Button Pressed", "$buttonName")
+        doLog("test", "$func", "9002", "Access Token", "$state.accessToken")
+        doLog("test", "$func", "9003", "Selected Dashboard Name", "${layoutTemplates}")
+
+    def appList = getHttp(appParams()).replaceAll("\n","").replaceAll("\r","")
     
-    rv = applyTemplate()
+    def appId = getDashAppId(appList).toInteger()
+        doLog("test", "$func", "9004", "App Id", "$appId")
+    
+	def childId = getDashChildAppId(appList, "${layoutTemplates}")
+        doLog("test", "$func", "9005", "Child App Id", "$childId")
+    
+    def params = [
+        //uri: "http://127.0.0.1:8080/apps/api/$appId/dashboard/$childId/layout?access_token=${oAuth_accessToken}",  // throws error Unauthorized
+		//uri: "http://127.0.0.1:8080/apps/api/$childId/dashboard/0/layout?access_token=${oAuth_accessToken}",    // Dashboard token no longer valid! Either token was revoked or access removed.
+        uri: "http://127.0.0.1:8080/apps/api/$childId/dashboard/0/layout?access_token=${dash_accessToken}",
+        
+        textParser: true,
+		headers: [
+			Cookie: state.cookie
+		]
+	  ]
+    
+        doLog("debug", "$func", "9010", "URI", "$params.uri")
+    
+    def dshJson = getHttp(params).replaceAll("\n","").replaceAll("\r","") as String
+        doLog("test", "$func", "9020", "JSON", "$dshJson")
+    
+    // simple replace of the font size to test the write back.
+    dshJson = dshJson.replace("fontSize\":12","fontSize\":14")
+        doLog("test", "$func", "9021", "JSON", "$dshJson")
+    
+    
+	if(security) cookie = getCookie()  //if using hub security
+    
+	Map requestParams = [
+        //uri: "http://127.0.0.1:8080/apps/api/$id/dashboard/$childId/layout",
+        uri: "http://127.0.0.1:8080/apps/api/$childId/dashboard/0/layout",
+        
+        headers: [
+            //Authorization: "${dash_accessToken}",
+            Authorization: "${oAuth_accessToken}",
+            requestContentType: 'application/json',
+		    contentType: 'application/json',
+			"Cookie": cookie,
+			body: "$dshJson"
+        ]
+	]
+
+
+    try {
+        asynchttpPost("postResp", requestParams)
+        doLog("test","$func", "9110", "Yippee","")
+    } catch (e) {
+        doLog("test","$func", "-9100", "Bummer","")
+    }
+        
+    //applyTemplate()
     
 }
 
+
+def postResp(params, data){  
+    def func = "postResp"
+    doLog("test","$func", "9001", "${params}","${data}")
+}
+
+String getCookie(){
+    try{
+  	  httpPost(
+		[
+		uri: "http://127.0.0.1:8080",
+		path: "/login",
+		query: [ loginRedirect: "/" ],
+		body: [
+			username: username,
+			password: password,
+			submit: "Login"
+			]
+		]
+	  ) { resp -> 
+		cookie = ((List)((String)resp?.headers?.'Set-Cookie')?.split(';'))?.getAt(0) 
+        if(debugEnable)
+            log.debug "$cookie"
+	  }
+    } catch (e){
+        cookie = ""
+    }
+    return "$cookie"
+}
 
 def applyTemplate() {
     def func = "applyTemplate()" as String
@@ -193,8 +330,8 @@ def applyTemplate() {
     def targets = String[]
     def rv
     
-    rv = doLog("debug","$func", "1", "variables declared", "")
-    rv = doLog("info","Dashboard Layout Template deploy activated", "","","")
+    rv = doLog("debug","$func", "9001", "variables declared", "")
+    rv = doLog("info","$func", "9002", "Dashboard Layout Template deploy activated","")
     
     // templateName = << get the template name from the input >>
     templateName = "Mobile Dashboard"
@@ -265,6 +402,7 @@ def updated() {
 
 def initialize() {
     app.updateLabel(defaultLabel())
+    initAccessToken()
 
 }
 
@@ -281,7 +419,7 @@ def defaultLabel() {
 
 def doLog (logType, funcName, seq, msg, msgVal) {
 // rv = doLog("debug","$func", "1", "Message", "$val")
-    def logger = "$funcName $seq : $msg [$msgVal]"  
+    def logger = "<b>$funcName</b> : $seq : <b>$msg</b> [$msgVal]"  
     def dbg = doDebug()
     
     
@@ -292,14 +430,22 @@ def doLog (logType, funcName, seq, msg, msgVal) {
                     
                 }
                 break
+            
             case "debug":
                 if (dbg['debug'] == 1) {
                     log.debug "$logger"
                 
                 }
                 break
+            
+            case "test":
+                if (dbg['test'] == 1) {
+                    log.debug "$logger"
+                
+                }
+                break
+            
             case "trace":
-
                 log.trace "$logger"
  
                 break
